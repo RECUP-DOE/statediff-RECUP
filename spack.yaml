@@ -1,0 +1,13 @@
+spack:
+  specs:
+    - "kokkos +serial"
+    - "openssl"
+    - "liburing@2.6:"
+    - "openmpi"
+    - "python@3.10:"
+    - "cmake"
+    - "ninja"
+    - "py-pybind11"
+  view: false
+  concretizer:
+    unify: when_possible

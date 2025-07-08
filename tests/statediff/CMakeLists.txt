@@ -1,0 +1,5 @@
+add_executable(test_statediff test.cpp)
+target_include_directories(test_statediff PRIVATE ${STATE_DIFF_DIR}/include)
+target_link_libraries(test_statediff PRIVATE statediff-RECUP)
+target_link_libraries(test_statediff PRIVATE Kokkos::kokkos OpenMP::OpenMP_CXX OpenSSL::SSL)
+add_test(NAME test_statediff COMMAND test_statediff --kokkos-num-threads=2 --kokkos-map-device-id-by=mpi_rank)

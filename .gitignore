@@ -1,0 +1,6 @@
+*__pycache__/
+external/spack/
+build/
+Testing/
+*.egg-info/
+venv/

@@ -1,0 +1,68 @@
+name: CI - C++ Build with Spack (Kokkos)
+
+on:
+  push:
+    branches: [python]
+  pull_request:
+    branches: [python]
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout repository and submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install required system packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            cmake \
+            ninja-build \
+            git \
+            pkg-config
+
+      - name: Clone and bootstrap Spack
+        run: |
+          git clone https://github.com/spack/spack.git $HOME/spack
+      
+      - name: Enable Spack binary cache
+        run: |
+          . $HOME/spack/share/spack/setup-env.sh
+          spack mirror add binary_mirror https://binaries.spack.io/releases/v0.21
+          spack buildcache keys --install --trust
+
+      - name: Install dependencies with Spack (kokkos + liburing + mpi)
+        run: |
+          . $HOME/spack/share/spack/setup-env.sh
+          spack install openmpi
+          # spack install kokkos@3.7.00 +serial
+          spack install kokkos +serial build_type=Release
+          spack install liburing@2.6:
+
+      - name: Configure state-diff with Spack-managed Kokkos
+        run: |
+          . $HOME/spack/share/spack/setup-env.sh
+          export MPI_PREFIX=$(spack location -i openmpi)
+          export KOKKOS_PREFIX=$(spack location -i kokkos)
+          export LIBURING_PREFIX=$(spack location -i liburing)
+
+          mkdir -p build && cd build
+          cmake \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_CXX_FLAGS="-fPIC" \
+            -DCMAKE_PREFIX_PATH="$MPI_PREFIX;$KOKKOS_PREFIX;$LIBURING_PREFIX" \
+            ../external/state-diff
+
+      - name: Build
+        run: |
+          cmake --build build --parallel
+
+      - name: Run CTest tests
+        run: |
+          cd build
+          ctest --output-on-failure --verbose | tee result.log
