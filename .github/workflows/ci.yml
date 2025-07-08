@@ -2,9 +2,9 @@ name: CI - C++ Build with Spack (Kokkos)
 
 on:
   push:
-    branches: [python]
+    branches: [main]
   pull_request:
-    branches: [python]
+    branches: [main]
 
 jobs:
   build:
