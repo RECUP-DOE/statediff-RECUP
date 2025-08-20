@@ -1,11 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-PROJECT_ROOT="$1"
-VENV_DIR="$2"
+SPACK_DIR="$1"
+PROJECT_ROOT="$2"
+VENV_DIR="$3"
 SPACK_ENV_NAME="statediff-env"
 
-. "$PROJECT_ROOT/external/spack/share/spack/setup-env.sh"
+if [ ! -d "$SPACK_DIR" ]; then
+    echo "Cloning Spack..."
+    git clone --depth=1 https://github.com/spack/spack.git "$SPACK_DIR"
+fi
+
+. "$SPACK_DIR/share/spack/setup-env.sh"
 
 if ! spack env list | grep -q "$SPACK_ENV_NAME"; then
     spack env create "$SPACK_ENV_NAME" "$PROJECT_ROOT/spack.yaml"
@@ -20,4 +26,4 @@ if [ ! -d "$VENV_DIR" ]; then
 fi
 
 source "$VENV_DIR/bin/activate"
-pip install --upgrade pip setuptools wheel pybind11
+pip install --upgrade pip setuptools wheel pybind11 numpy
