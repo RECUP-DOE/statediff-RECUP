@@ -16,7 +16,7 @@ LIBURING_PREFIX="$(spack location -i liburing)"
 PYBIND11_PREFIX="$(spack location -i py-pybind11)"
 OPENSSL_PREFIX="$(spack location -i openssl)"
 
-CMAKE_BIN="$(spack location -i cmake)/bin/cmake"
+CMAKE_BIN="$(spack location -i cmake@3.27.9)/bin/cmake"
 NINJA_BIN="$(spack location -i ninja)/bin/ninja"
 
 CMAKE_PREFIX_PATH_LIST="$MPI_PREFIX;$KOKKOS_PREFIX;${LIBURING_PREFIX:-};$PYBIND11_PREFIX;${OPENSSL_PREFIX:-}"
