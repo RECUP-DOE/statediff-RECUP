@@ -1,6 +1,6 @@
 spack:
   specs:
-    - "kokkos +serial"
+    - "kokkos +openmp"
     - "openssl"
     - "liburing@2.6:"
     - "openmpi"

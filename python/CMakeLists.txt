@@ -1,8 +1,9 @@
-cmake_minimum_required(VERSION 3.14)
 project(statediff_python LANGUAGES CXX)
 
+set(PYBIND11_FINDPYTHON ON)
+find_package(Python REQUIRED COMPONENTS Interpreter Development.Module)
 find_package(pybind11 CONFIG REQUIRED)
-find_package(Kokkos REQUIRED CONFIG)
+find_package(Kokkos CONFIG REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(OpenMP REQUIRED)
 
@@ -28,15 +29,8 @@ add_dependencies(statediff state-diff-install)
 
 set(_RPATHS "${STATE_DIFF_INSTALL}/lib;${STATE_DIFF_INSTALL}/lib64;$ORIGIN")
 
-foreach(t Kokkos::kokkoscore Kokkos::kokkoscontainers Kokkos::kokkos)
-  if(TARGET ${t})
-    get_target_property(_loc ${t} IMPORTED_LOCATION)
-    if(_loc)
-      list(APPEND _RPATHS "$<TARGET_FILE_DIR:${t}>")
-      break()
-    endif()
-  endif()
-endforeach()
+set_property(TARGET statediff APPEND PROPERTY BUILD_RPATH "$<TARGET_FILE_DIR:Kokkos::kokkos>")
+set_property(TARGET statediff APPEND PROPERTY INSTALL_RPATH "$<TARGET_FILE_DIR:Kokkos::kokkos>")
 
 set_target_properties(statediff PROPERTIES
   BUILD_WITH_INSTALL_RPATH ON
