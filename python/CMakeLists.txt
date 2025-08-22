@@ -7,6 +7,20 @@ find_package(Kokkos CONFIG REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(OpenMP REQUIRED)
 
+# find through spack
+find_library(LIBURING_LIB NAMES uring
+  HINTS $ENV{LIBURING_PREFIX} ${CMAKE_PREFIX_PATH}
+  PATH_SUFFIXES lib lib64
+)
+# lookup liburing on system
+if(NOT LIBURING_LIB)
+  find_library(LIBURING_LIB NAMES uring)
+endif()
+if(NOT LIBURING_LIB)
+  message(FATAL_ERROR "liburing not found. Set LIBURING_PREFIX or add liburing to CMAKE_PREFIX_PATH.")
+endif()
+get_filename_component(LIBURING_DIR "${LIBURING_LIB}" DIRECTORY)
+
 pybind11_add_module(statediff MODULE ${CMAKE_CURRENT_SOURCE_DIR}/bindings.cpp)
 target_compile_features(statediff PRIVATE cxx_std_17)
 target_compile_definitions(statediff PRIVATE _GLIBCXX_USE_CXX11_ABI=1)
@@ -23,19 +37,30 @@ target_link_libraries(statediff PRIVATE
   Kokkos::kokkos 
   OpenSSL::SSL 
   OpenMP::OpenMP_CXX
+  "${LIBURING_LIB}"
 )
 
 add_dependencies(statediff state-diff-install)
 
-set(_RPATHS "${STATE_DIFF_INSTALL}/lib;${STATE_DIFF_INSTALL}/lib64;$ORIGIN")
+set(_RPATHS
+  "$ORIGIN"
+  "${STATE_DIFF_INSTALL}/lib"
+  "${STATE_DIFF_INSTALL}/lib64"
+  "$<TARGET_FILE_DIR:statediff_external>"
+  "$<TARGET_FILE_DIR:OpenSSL::SSL>"
+  "$<TARGET_FILE_DIR:Kokkos::kokkoscore>"
+  "${LIBURING_DIR}"
+)
 
-set_property(TARGET statediff APPEND PROPERTY BUILD_RPATH "$<TARGET_FILE_DIR:Kokkos::kokkos>")
-set_property(TARGET statediff APPEND PROPERTY INSTALL_RPATH "$<TARGET_FILE_DIR:Kokkos::kokkos>")
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+set(CMAKE_BUILD_RPATH_USE_ORIGIN TRUE)
 
 set_target_properties(statediff PROPERTIES
-  BUILD_WITH_INSTALL_RPATH ON
-  SKIP_BUILD_RPATH OFF
   BUILD_RPATH   "${_RPATHS}"
   INSTALL_RPATH "${_RPATHS}"
-  PREFIX ""
+  SKIP_BUILD_RPATH OFF
+  PREFIX "" 
 )
+
+
+install(TARGETS statediff DESTINATION ".")

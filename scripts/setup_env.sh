@@ -16,6 +16,7 @@ if ! spack env list | grep -q "$SPACK_ENV_NAME"; then
     spack env create "$SPACK_ENV_NAME" "$PROJECT_ROOT/spack.yaml"
 fi
 spack env activate "$SPACK_ENV_NAME"
+# eval "$(spack env activate --sh $SPACK_ENV_NAME)"
 spack external find cmake ninja openssl || true
 
 spack mirror add E4S https://cache.e4s.io
